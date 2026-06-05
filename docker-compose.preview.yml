@@ -1,0 +1,115 @@
+services:
+  auth:
+    image: ${REGISTRY_IMAGE}/auth:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: &preview-environment
+      APP_ENV: preview
+      HIREPILOT_ENVIRONMENT: preview
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=70.0}
+      PREVIEW_PR_NUMBER: ${PREVIEW_PR_NUMBER}
+      SPRING_PROFILES_ACTIVE: preview
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-auth.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-auth.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/auth`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-auth.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-auth.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-auth.loadbalancer.server.port=8081
+    networks:
+      - preview-proxy
+
+  candidate:
+    image: ${REGISTRY_IMAGE}/candidate:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-candidate.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-candidate.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/candidate`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-candidate.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-candidate.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-candidate.loadbalancer.server.port=8082
+    networks:
+      - preview-proxy
+
+  employer:
+    image: ${REGISTRY_IMAGE}/employer:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-employer.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-employer.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/employer`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-employer.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-employer.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-employer.loadbalancer.server.port=8083
+    networks:
+      - preview-proxy
+
+  jobs:
+    image: ${REGISTRY_IMAGE}/jobs:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-jobs.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-jobs.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/jobs`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-jobs.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-jobs.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-jobs.loadbalancer.server.port=8084
+    networks:
+      - preview-proxy
+
+  ai:
+    image: ${REGISTRY_IMAGE}/ai:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-ai.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-ai.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/ai`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-ai.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-ai.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-ai.loadbalancer.server.port=8085
+    networks:
+      - preview-proxy
+
+  search:
+    image: ${REGISTRY_IMAGE}/search:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-search.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-search.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/search`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-search.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-search.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-search.loadbalancer.server.port=8086
+    networks:
+      - preview-proxy
+
+  integration:
+    image: ${REGISTRY_IMAGE}/integration:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-integration.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-integration.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/integration`)
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-integration.tls=true
+      - traefik.http.routers.hirepilot-pr-${PREVIEW_PR_NUMBER}-integration.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.hirepilot-pr-${PREVIEW_PR_NUMBER}-integration.loadbalancer.server.port=8087
+    networks:
+      - preview-proxy
+
+networks:
+  preview-proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-preview-proxy}
