@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7 
+# syntax=docker/dockerfile:1.7
 
 ARG MAVEN_IMAGE=maven:3.9-eclipse-temurin-25
 ARG RUNTIME_IMAGE=eclipse-temurin:25-jre
