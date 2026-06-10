@@ -108,9 +108,6 @@
                         <format>
                             <includes>
                                 <include>*.md</include>
-                                <include>.dockerignore</include>
-                                <include>Dockerfile</include>
-                                <include>docker-compose.yml</include>
                                 <include>.github/workflows/*.yml</include>
                                 <include>**/*.properties</include>
                                 <include>**/*.xml</include>
