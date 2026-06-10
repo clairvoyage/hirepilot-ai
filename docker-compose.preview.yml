@@ -1,0 +1,108 @@
+services:
+  auth:
+    image: ${REGISTRY_IMAGE}/auth:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: &preview-environment
+      APP_ENV: preview
+      HIREPILOT_ENVIRONMENT: preview
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=70.0}
+      PREVIEW_PR_NUMBER: ${PREVIEW_PR_NUMBER}
+      SPRING_PROFILES_ACTIVE: preview
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-auth.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/auth`)
+      - traefik.http.routers.${STACK_NAME}-auth.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-auth.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-auth.loadbalancer.server.port=8081
+    networks:
+      - preview-proxy
+
+  candidate:
+    image: ${REGISTRY_IMAGE}/candidate:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-candidate.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/candidate`)
+      - traefik.http.routers.${STACK_NAME}-candidate.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-candidate.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-candidate.loadbalancer.server.port=8082
+    networks:
+      - preview-proxy
+
+  employer:
+    image: ${REGISTRY_IMAGE}/employer:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-employer.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/employer`)
+      - traefik.http.routers.${STACK_NAME}-employer.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-employer.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-employer.loadbalancer.server.port=8083
+    networks:
+      - preview-proxy
+
+  jobs:
+    image: ${REGISTRY_IMAGE}/jobs:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-jobs.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/jobs`)
+      - traefik.http.routers.${STACK_NAME}-jobs.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-jobs.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-jobs.loadbalancer.server.port=8084
+    networks:
+      - preview-proxy
+
+  ai:
+    image: ${REGISTRY_IMAGE}/ai:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-ai.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/ai`)
+      - traefik.http.routers.${STACK_NAME}-ai.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-ai.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-ai.loadbalancer.server.port=8085
+    networks:
+      - preview-proxy
+
+  search:
+    image: ${REGISTRY_IMAGE}/search:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-search.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/search`)
+      - traefik.http.routers.${STACK_NAME}-search.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-search.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-search.loadbalancer.server.port=8086
+    networks:
+      - preview-proxy
+
+  integration:
+    image: ${REGISTRY_IMAGE}/integration:${IMAGE_TAG}
+    restart: unless-stopped
+    environment: *preview-environment
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-preview-proxy}
+      - traefik.http.routers.${STACK_NAME}-integration.rule=Host(`${PREVIEW_HOST}`) && PathPrefix(`/api/integration`)
+      - traefik.http.routers.${STACK_NAME}-integration.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.${STACK_NAME}-integration.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-letsencrypt}
+      - traefik.http.services.${STACK_NAME}-integration.loadbalancer.server.port=8087
+    networks:
+      - preview-proxy
+
+networks:
+  preview-proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-preview-proxy}
