@@ -240,22 +240,31 @@ jobs:
             echo "::warning::TCP 443 is not reachable from the GitHub runner."
           fi
 
+          ssh_target="${PREVIEW_SSH_USER}@${PREVIEW_SSH_HOST}"
+          ssh_opts=(-i "${HOME}/.ssh/preview_deploy_key" -o StrictHostKeyChecking=yes)
+
+          ssh "${ssh_opts[@]}" "${ssh_target}" \
+            "PREVIEW_HOST=${PREVIEW_HOST@Q} PREVIEW_SMOKE_ATTEMPTS=${PREVIEW_SMOKE_ATTEMPTS@Q} PREVIEW_SMOKE_CONNECT_TIMEOUT=${PREVIEW_SMOKE_CONNECT_TIMEOUT@Q} PREVIEW_SMOKE_MAX_TIME=${PREVIEW_SMOKE_MAX_TIME@Q} PREVIEW_SMOKE_SLEEP_SECONDS=${PREVIEW_SMOKE_SLEEP_SECONDS@Q} bash -s" <<'REMOTE_SMOKE'
+          health_url="https://${PREVIEW_HOST}/api/auth/health"
+
           for attempt in $(seq 1 "${PREVIEW_SMOKE_ATTEMPTS}"); do
             if curl \
+              --resolve "${PREVIEW_HOST}:443:127.0.0.1" \
               --connect-timeout "${PREVIEW_SMOKE_CONNECT_TIMEOUT}" \
               --max-time "${PREVIEW_SMOKE_MAX_TIME}" \
               --show-error \
-              -fsS \
+              -kfsS \
               "${health_url}"; then
               exit 0
             fi
 
-            echo "Preview is not ready yet; retry ${attempt}/${PREVIEW_SMOKE_ATTEMPTS} in ${PREVIEW_SMOKE_SLEEP_SECONDS}s."
+            echo "Preview is not ready on the preview host yet; retry ${attempt}/${PREVIEW_SMOKE_ATTEMPTS} in ${PREVIEW_SMOKE_SLEEP_SECONDS}s."
             sleep "${PREVIEW_SMOKE_SLEEP_SECONDS}"
           done
 
-          echo "::error::Preview did not become healthy at ${health_url}."
+          echo "Preview did not become healthy at ${health_url} from the preview host."
           exit 1
+          REMOTE_SMOKE
 
       - name: Comment preview URL
         uses: actions/github-script@v7

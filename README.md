@@ -142,3 +142,5 @@ Preview URLs use this pattern:
 ```text
 https://pr-<pull-request-number>.<PREVIEW_BASE_DOMAIN>
 ```
+
+The smoke test runs on the preview host through local Traefik routing. If you also want GitHub-hosted runners to reach the preview URL directly, allow public inbound TCP `443` to the preview host.
