@@ -155,6 +155,10 @@ jobs:
       IMAGE_TAG: ${{ needs.prepare.outputs.image_tag }}
       PREVIEW_HOST: ${{ needs.prepare.outputs.preview_host }}
       PREVIEW_REMOTE_ROOT: ${{ vars.PREVIEW_REMOTE_ROOT || 'hirepilot-previews' }}
+      PREVIEW_SMOKE_ATTEMPTS: ${{ vars.PREVIEW_SMOKE_ATTEMPTS || '18' }}
+      PREVIEW_SMOKE_CONNECT_TIMEOUT: ${{ vars.PREVIEW_SMOKE_CONNECT_TIMEOUT || '3' }}
+      PREVIEW_SMOKE_MAX_TIME: ${{ vars.PREVIEW_SMOKE_MAX_TIME || '5' }}
+      PREVIEW_SMOKE_SLEEP_SECONDS: ${{ vars.PREVIEW_SMOKE_SLEEP_SECONDS || '5' }}
       PREVIEW_SSH_HOST: ${{ secrets.PREVIEW_SSH_HOST }}
       PREVIEW_SSH_KEY: ${{ secrets.PREVIEW_SSH_KEY }}
       PREVIEW_SSH_USER: ${{ secrets.PREVIEW_SSH_USER }}
@@ -223,16 +227,34 @@ jobs:
       - name: Smoke test preview URL
         shell: bash
         run: |
-          for attempt in {1..30}; do
-            if curl -fsS "${PREVIEW_URL}/api/auth/health"; then
+          health_url="${PREVIEW_URL}/api/auth/health"
+
+          echo "Smoke test URL: ${health_url}"
+          echo "DNS result for ${PREVIEW_HOST}:"
+          getent hosts "${PREVIEW_HOST}" || true
+
+          echo "Checking TCP connectivity to ${PREVIEW_HOST}:443."
+          if timeout 5 bash -c "cat < /dev/null > /dev/tcp/${PREVIEW_HOST}/443"; then
+            echo "TCP 443 is reachable from the GitHub runner."
+          else
+            echo "::warning::TCP 443 is not reachable from the GitHub runner."
+          fi
+
+          for attempt in $(seq 1 "${PREVIEW_SMOKE_ATTEMPTS}"); do
+            if curl \
+              --connect-timeout "${PREVIEW_SMOKE_CONNECT_TIMEOUT}" \
+              --max-time "${PREVIEW_SMOKE_MAX_TIME}" \
+              --show-error \
+              -fsS \
+              "${health_url}"; then
               exit 0
             fi
 
-            echo "Preview is not ready yet; retry ${attempt}/30."
-            sleep 10
+            echo "Preview is not ready yet; retry ${attempt}/${PREVIEW_SMOKE_ATTEMPTS} in ${PREVIEW_SMOKE_SLEEP_SECONDS}s."
+            sleep "${PREVIEW_SMOKE_SLEEP_SECONDS}"
           done
 
-          echo "::error::Preview did not become healthy at ${PREVIEW_URL}/api/auth/health."
+          echo "::error::Preview did not become healthy at ${health_url}."
           exit 1
 
       - name: Comment preview URL

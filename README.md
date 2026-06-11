@@ -129,6 +129,10 @@ Optional variables:
 | --- | --- |
 | `PREVIEW_REMOTE_ROOT` | `hirepilot-previews` |
 | `PREVIEW_SCHEME` | `https` |
+| `PREVIEW_SMOKE_ATTEMPTS` | `18` |
+| `PREVIEW_SMOKE_CONNECT_TIMEOUT` | `3` |
+| `PREVIEW_SMOKE_MAX_TIME` | `5` |
+| `PREVIEW_SMOKE_SLEEP_SECONDS` | `5` |
 | `PREVIEW_TRAEFIK_CERT_RESOLVER` | `letsencrypt` |
 | `PREVIEW_TRAEFIK_ENTRYPOINT` | `websecure` |
 | `PREVIEW_TRAEFIK_NETWORK` | `preview-proxy` |
