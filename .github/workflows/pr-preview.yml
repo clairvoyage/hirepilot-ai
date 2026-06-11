@@ -52,6 +52,11 @@ jobs:
             exit 1
           fi
 
+          if [[ "${PREVIEW_BASE_DOMAIN}" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.sslip\.io$ ]]; then
+            PREVIEW_BASE_DOMAIN="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}-${BASH_REMATCH[4]}.sslip.io"
+            echo "::notice::Normalized PREVIEW_BASE_DOMAIN to ${PREVIEW_BASE_DOMAIN} for sslip.io wildcard DNS."
+          fi
+
           image_repository="ghcr.io/${GITHUB_REPOSITORY,,}"
           image_tag="pr-${{ github.event.pull_request.number }}-${GITHUB_SHA::7}"
           preview_host="pr-${{ github.event.pull_request.number }}.${PREVIEW_BASE_DOMAIN}"
