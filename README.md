@@ -78,3 +78,69 @@ Swap `auth` for any other module name. If `java -jar` fails with `UnsupportedCla
 ```bash
 java -version
 ```
+
+## Docker
+
+Build and run all services with Docker Compose:
+
+```bash
+docker compose up --build
+```
+
+Run one service:
+
+```bash
+docker compose up --build auth
+```
+
+Stop the stack:
+
+```bash
+docker compose down
+```
+
+## PR Preview Deployments
+
+Pull requests from branches in this repository can deploy a Docker Compose preview stack after `mvn verify` passes and preview images are pushed to GitHub Container Registry.
+
+The preview host needs Docker, Docker Compose, and Traefik. Create the external Traefik network once:
+
+```bash
+docker network create preview-proxy
+```
+
+Configure wildcard DNS so `*.PREVIEW_BASE_DOMAIN` points at the preview host, then set these GitHub repository secrets:
+
+| Secret | Purpose |
+| --- | --- |
+| `PREVIEW_SSH_HOST` | Preview host DNS name or IP address |
+| `PREVIEW_SSH_USER` | SSH user that can run Docker Compose |
+| `PREVIEW_SSH_KEY` | Private SSH key for the preview host |
+
+Set this repository variable:
+
+| Variable | Example |
+| --- | --- |
+| `PREVIEW_BASE_DOMAIN` | `preview.example.com` |
+
+Optional variables:
+
+| Variable | Default |
+| --- | --- |
+| `PREVIEW_REMOTE_ROOT` | `hirepilot-previews` |
+| `PREVIEW_SCHEME` | `https` |
+| `PREVIEW_SMOKE_ATTEMPTS` | `18` |
+| `PREVIEW_SMOKE_CONNECT_TIMEOUT` | `3` |
+| `PREVIEW_SMOKE_MAX_TIME` | `5` |
+| `PREVIEW_SMOKE_SLEEP_SECONDS` | `5` |
+| `PREVIEW_TRAEFIK_CERT_RESOLVER` | `letsencrypt` |
+| `PREVIEW_TRAEFIK_ENTRYPOINT` | `websecure` |
+| `PREVIEW_TRAEFIK_NETWORK` | `preview-proxy` |
+
+Preview URLs use this pattern:
+
+```text
+https://pr-<pull-request-number>.<PREVIEW_BASE_DOMAIN>
+```
+
+The smoke test runs on the preview host through local Traefik routing. If you also want GitHub-hosted runners to reach the preview URL directly, allow public inbound TCP `443` to the preview host.
